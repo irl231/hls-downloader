@@ -132,7 +132,9 @@ export async function muxExec({
       throw new Error(`FFmpeg exited with code ${exitCode}`);
     }
     const data = await ffmpeg.readFile(outputFileName);
-    const mime = includeSubtitles ? "video/x-matroska" : "video/mp4";
+    const mime = outputFileName.endsWith(".mkv")
+      ? "video/x-matroska"
+      : "video/mp4";
     return { blob: new Blob([data], { type: mime }), mime };
   } finally {
     const cleanupFiles = [
