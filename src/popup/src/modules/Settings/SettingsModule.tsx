@@ -12,8 +12,10 @@ const SettingsModule = () => {
     fetchAttempts,
     onSaveDialogToggle,
     onAutoDeleteAfterSaveToggle,
+    onPreferMkvToggle,
     saveDialog,
     autoDeleteAfterSave,
+    preferMkv,
     concurrency,
     preferredAudioLanguage,
     onSetPreferredAudioLanguage,
@@ -32,8 +34,10 @@ const SettingsModule = () => {
       onFetchAttemptsIncrease={onFetchAttemptsIncrease}
       onSaveDialogToggle={onSaveDialogToggle}
       onAutoDeleteAfterSaveToggle={onAutoDeleteAfterSaveToggle}
+      onPreferMkvToggle={onPreferMkvToggle}
       saveDialog={saveDialog}
       autoDeleteAfterSave={autoDeleteAfterSave}
+      preferMkv={preferMkv}
       onConcurrencyDecrease={onConcurrencyDecrease}
       onConcurrencyIncrease={onConcurrencyIncrease}
       concurrency={concurrency}

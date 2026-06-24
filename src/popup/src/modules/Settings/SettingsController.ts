@@ -8,10 +8,12 @@ interface ReturnType {
   fetchAttempts: number;
   saveDialog: boolean;
   autoDeleteAfterSave: boolean;
+  preferMkv: boolean;
   onFetchAttemptsIncrease: () => void;
   onFetchAttemptsDecrease: () => void;
   onSaveDialogToggle: () => void;
   onAutoDeleteAfterSaveToggle: () => void;
+  onPreferMkvToggle: () => void;
   onConcurrencyIncrease: () => void;
   onConcurrencyDecrease: () => void;
   onActiveDownloadsIncrease: () => void;
@@ -41,6 +43,9 @@ const useSettingsController = (): ReturnType => {
   );
   const autoDeleteAfterSave = useSelector<RootState, boolean>(
     (state) => state.config.autoDeleteAfterSave
+  );
+  const preferMkv = useSelector<RootState, boolean>(
+    (state) => state.config.preferMkv ?? false
   );
   const activeDownloadsUnlimited = maxActiveDownloads === 0;
 
@@ -109,6 +114,13 @@ const useSettingsController = (): ReturnType => {
       })
     );
   }
+  function onPreferMkvToggle() {
+    dispatch(
+      configSlice.actions.setPreferMkv({
+        preferMkv: !preferMkv,
+      })
+    );
+  }
   function onSetPreferredAudioLanguage(lang: string | null) {
     const normalized = (lang ?? "").trim();
     dispatch(
@@ -129,10 +141,12 @@ const useSettingsController = (): ReturnType => {
     fetchAttempts,
     saveDialog,
     autoDeleteAfterSave,
+    preferMkv,
     onFetchAttemptsIncrease,
     onFetchAttemptsDecrease,
     onSaveDialogToggle,
     onAutoDeleteAfterSaveToggle,
+    onPreferMkvToggle,
     preferredAudioLanguage,
     onSetPreferredAudioLanguage,
   };

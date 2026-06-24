@@ -47,6 +47,7 @@ export const addDownloadJobEpic: Epic<
 
       const baseUri = videoLevel.playlistID;
       const fetchAttempts = store$.value.config.fetchAttempts;
+      const preferMkv = store$.value.config.preferMkv ?? false;
 
       return from(
         (async () => {
@@ -79,7 +80,7 @@ export const addDownloadJobEpic: Epic<
                 : Promise.resolve(null),
             ]);
 
-          const container = subtitleLevel ? "mkv" : "mp4";
+          const container = subtitleLevel || preferMkv ? "mkv" : "mp4";
           const actions: RootAction[] = [
             jobsSlice.actions.add({
               job: {

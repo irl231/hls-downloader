@@ -28,6 +28,10 @@ export interface ISetAutoDeleteAfterSavePayload {
   autoDeleteAfterSave: boolean;
 }
 
+export interface ISetPreferMkvPayload {
+  preferMkv: boolean;
+}
+
 export interface IConfigState {
   concurrency: number;
   saveDialog: boolean;
@@ -35,6 +39,7 @@ export interface IConfigState {
   preferredAudioLanguage: string | null;
   maxActiveDownloads: number;
   autoDeleteAfterSave: boolean;
+  preferMkv: boolean;
 }
 
 interface IConfigReducers {
@@ -62,6 +67,10 @@ interface IConfigReducers {
     IConfigState,
     PayloadAction<ISetAutoDeleteAfterSavePayload>
   >;
+  setPreferMkv: CaseReducer<
+    IConfigState,
+    PayloadAction<ISetPreferMkvPayload>
+  >;
   [key: string]: CaseReducer<IConfigState, PayloadAction<any>>;
 }
 
@@ -72,6 +81,7 @@ export const initialConfigState: IConfigState = {
   preferredAudioLanguage: null,
   maxActiveDownloads: 0,
   autoDeleteAfterSave: false,
+  preferMkv: false,
 };
 
 export const configSlice: Slice<IConfigState, IConfigReducers, "config"> =
@@ -105,6 +115,12 @@ export const configSlice: Slice<IConfigState, IConfigReducers, "config"> =
         action: PayloadAction<ISetAutoDeleteAfterSavePayload>
       ) {
         state.autoDeleteAfterSave = action.payload.autoDeleteAfterSave;
+      },
+      setPreferMkv(
+        state,
+        action: PayloadAction<ISetPreferMkvPayload>
+      ) {
+        state.preferMkv = action.payload.preferMkv;
       },
     },
   });

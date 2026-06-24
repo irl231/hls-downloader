@@ -10,10 +10,12 @@ interface Props {
   fetchAttempts: number;
   saveDialog: boolean;
   autoDeleteAfterSave: boolean;
+  preferMkv: boolean;
   onFetchAttemptsIncrease: () => void;
   onFetchAttemptsDecrease: () => void;
   onSaveDialogToggle: () => void;
   onAutoDeleteAfterSaveToggle: () => void;
+  onPreferMkvToggle: () => void;
   onConcurrencyIncrease: () => void;
   onConcurrencyDecrease: () => void;
   onActiveDownloadsIncrease: () => void;
@@ -63,6 +65,7 @@ const SettingsView = ({
   fetchAttempts,
   saveDialog,
   autoDeleteAfterSave,
+  preferMkv,
   onConcurrencyIncrease,
   onConcurrencyDecrease,
   onActiveDownloadsIncrease,
@@ -74,6 +77,7 @@ const SettingsView = ({
   onFetchAttemptsDecrease,
   onSaveDialogToggle,
   onAutoDeleteAfterSaveToggle,
+  onPreferMkvToggle,
   preferredAudioLanguage = "",
   onSetPreferredAudioLanguage,
   storage,
@@ -233,6 +237,20 @@ const SettingsView = ({
             aria-label="toggle auto delete after save"
             onClick={onAutoDeleteAfterSaveToggle}
             checked={autoDeleteAfterSave}
+          ></Switch>
+        </Card>
+
+        <Card className="flex-row items-center justify-between gap-2">
+          <div className="flex flex-col">
+            <p className="text-sm font-medium">Download as MKV when possible</p>
+            <p className="text-[11px] text-muted-foreground">
+              Use MKV container even without subtitles
+            </p>
+          </div>
+          <Switch
+            aria-label="toggle prefer mkv"
+            onClick={onPreferMkvToggle}
+            checked={preferMkv}
           ></Switch>
         </Card>
 
