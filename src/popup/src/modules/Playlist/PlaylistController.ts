@@ -18,13 +18,15 @@ interface ReturnType {
   downloadLevel: (
     videoId: string,
     audioLevelID?: string,
-    subtitleLevelID?: string
+    subtitleLevelID?: string,
+    customFilename?: string
   ) => void;
   inspections: ILevelInspectionsState;
   preferences: IPlaylistPreferencesState;
   preferredAudioLanguage: string | null;
   setAudioPreference: (levelID: string) => void;
   setSubtitlePreference: (levelID: string) => void;
+  setCustomFilename: (filename: string) => void;
   inspectLevel: (levelID: string) => void;
 }
 
@@ -56,12 +58,18 @@ const usePlaylistController = ({ id }: { id: string }): ReturnType => {
   });
 
   const downloadLevel = useCallback(
-    (levelId: string, audioLevelID?: string, subtitleLevelID?: string) => {
+    (
+      levelId: string,
+      audioLevelID?: string,
+      subtitleLevelID?: string,
+      customFilename?: string
+    ) => {
       dispatch(
         levelsSlice.actions.download({
           levelID: levelId,
           audioLevelID,
           subtitleLevelID,
+          customFilename,
         })
       );
       setTab(TabOptions.DOWNLOADS);
@@ -75,6 +83,17 @@ const usePlaylistController = ({ id }: { id: string }): ReturnType => {
     inspections,
     preferences,
     preferredAudioLanguage,
+    setCustomFilename: useCallback(
+      (filename: string) => {
+        dispatch(
+          playlistPreferencesSlice.actions.setCustomFilename({
+            playlistID: id,
+            filename,
+          })
+        );
+      },
+      [dispatch, id]
+    ),
     setAudioPreference: useCallback(
       (levelID: string) => {
         dispatch(

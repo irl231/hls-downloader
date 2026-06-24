@@ -55,6 +55,7 @@ const PlaylistModule = ({
     preferredAudioLanguage,
     setAudioPreference,
     setSubtitlePreference,
+    setCustomFilename,
     inspectLevel,
   } = usePlaylistController({
     id,
@@ -102,6 +103,7 @@ const PlaylistModule = ({
 
   const storedAudioId = preferences.audioSelections[id];
   const storedSubtitleId = preferences.subtitleSelections[id];
+  const storedCustomFilename = preferences.customFilenames[id] ?? "";
 
   useEffect(() => {
     if (videoLevels.length > 0) {
@@ -275,14 +277,15 @@ const PlaylistModule = ({
     !encryptionBlocked &&
     !inspectionPending;
 
-  function onDownload() {
+  function onDownload(customFilename?: string) {
     if (!canDownload) return;
 
     const primaryId = videoId ?? audioId!;
     downloadLevel(
       primaryId,
       requiresAudio ? audioId : undefined,
-      subtitleId || undefined
+      subtitleId || undefined,
+      customFilename
     );
   }
 
@@ -311,6 +314,8 @@ const PlaylistModule = ({
       onSelectSubtitle={handleSelectSubtitle}
       onDownload={onDownload}
       canDownload={canDownload}
+      customFilename={storedCustomFilename}
+      onCustomFilenameChange={setCustomFilename}
       status={status}
       encryptionSummaries={encryptionSummaries}
       inspectionPending={inspectionPending}

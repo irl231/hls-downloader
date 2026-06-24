@@ -24,6 +24,7 @@ export interface IDownloadLevelPayload {
   levelID: string;
   audioLevelID?: string;
   subtitleLevelID?: string;
+  customFilename?: string;
 }
 
 interface ILevelsReducers {

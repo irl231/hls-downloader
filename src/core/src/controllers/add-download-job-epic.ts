@@ -21,7 +21,7 @@ export const addDownloadJobEpic: Epic<
   action$.pipe(
     filter(levelsSlice.actions.download.match),
     map((action) => action.payload),
-    mergeMap(({ levelID, audioLevelID, subtitleLevelID }) => {
+    mergeMap(({ levelID, audioLevelID, subtitleLevelID, customFilename }) => {
       const jobId =
         (crypto as any)?.randomUUID?.() ??
         `job-${Date.now()}-${Math.floor(Math.random() * 1e6)}`;
@@ -81,6 +81,13 @@ export const addDownloadJobEpic: Epic<
             ]);
 
           const container = subtitleLevel || preferMkv ? "mkv" : "mp4";
+          const defaultFilename = generateFileName()(playlist, videoLevel, {
+            container,
+          });
+          const filename =
+            customFilename && customFilename.trim()
+              ? `${customFilename.trim()}.${container}`
+              : defaultFilename;
           const actions: RootAction[] = [
             jobsSlice.actions.add({
               job: {
@@ -88,9 +95,7 @@ export const addDownloadJobEpic: Epic<
                 playlistId: playlist.id,
                 videoFragments,
                 audioFragments,
-                filename: generateFileName()(playlist, videoLevel, {
-                  container,
-                }),
+                filename,
                 createdAt: Date.now(),
                 bitrate: videoLevel.bitrate,
                 width: videoLevel.width,

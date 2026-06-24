@@ -19,9 +19,15 @@ export interface IRemovePlaylistPreferencesPayload {
   playlistID: string;
 }
 
+export interface ISetCustomFilenamePayload {
+  playlistID: string;
+  filename: string;
+}
+
 export interface IPlaylistPreferencesState {
   audioSelections: Record<string, string | undefined>;
   subtitleSelections: Record<string, string | undefined>;
+  customFilenames: Record<string, string | undefined>;
 }
 
 interface IPlaylistPreferencesReducers {
@@ -34,6 +40,10 @@ interface IPlaylistPreferencesReducers {
     PayloadAction<ISetSubtitleSelectionPayload>
   >;
   clear: CaseReducer<IPlaylistPreferencesState, PayloadAction<undefined>>;
+  setCustomFilename: CaseReducer<
+    IPlaylistPreferencesState,
+    PayloadAction<ISetCustomFilenamePayload>
+  >;
   removePlaylistPreferences: CaseReducer<
     IPlaylistPreferencesState,
     PayloadAction<IRemovePlaylistPreferencesPayload>
@@ -44,6 +54,7 @@ interface IPlaylistPreferencesReducers {
 const initialState: IPlaylistPreferencesState = {
   audioSelections: {},
   subtitleSelections: {},
+  customFilenames: {},
 };
 
 export const playlistPreferencesSlice: Slice<
@@ -65,9 +76,17 @@ export const playlistPreferencesSlice: Slice<
       const { playlistID, levelID } = action.payload;
       state.subtitleSelections[playlistID] = levelID;
     },
+    setCustomFilename(
+      state,
+      action: PayloadAction<ISetCustomFilenamePayload>
+    ) {
+      const { playlistID, filename } = action.payload;
+      state.customFilenames[playlistID] = filename;
+    },
     clear(state) {
       state.audioSelections = initialState.audioSelections;
       state.subtitleSelections = initialState.subtitleSelections;
+      state.customFilenames = initialState.customFilenames;
     },
     removePlaylistPreferences(
       state,
@@ -76,6 +95,7 @@ export const playlistPreferencesSlice: Slice<
       const { playlistID } = action.payload;
       delete state.audioSelections[playlistID];
       delete state.subtitleSelections[playlistID];
+      delete state.customFilenames[playlistID];
     },
   },
 });

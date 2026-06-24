@@ -31,6 +31,8 @@ interface Props {
   onSelectSubtitle: (id: string) => void;
   onDownload: () => void;
   canDownload: boolean;
+  customFilename: string;
+  onCustomFilenameChange: (filename: string) => void;
   onBack?: () => void;
   encryptionSummaries: {
     label: string;
@@ -63,6 +65,8 @@ const PlaylistView = ({
   onSelectSubtitle,
   onDownload,
   canDownload,
+  customFilename,
+  onCustomFilenameChange,
   onBack,
   encryptionSummaries: _encryptionSummaries,
   inspectionPending,
@@ -318,6 +322,23 @@ const PlaylistView = ({
               </Card>
             )}
 
+            <Card className="space-y-2">
+              <div className="flex flex-wrap items-center gap-2">
+                <div className="flex items-center gap-2 text-sm font-medium">
+                  <Subtitles className="h-4 w-4" /> Filename
+                </div>
+                <div className="flex-1 min-w-[200px]">
+                  <input
+                    type="text"
+                    className="w-full p-2 text-sm border rounded-md bg-background text-foreground"
+                    placeholder="Auto-generated filename"
+                    value={customFilename}
+                    onChange={(e) => onCustomFilenameChange(e.target.value)}
+                  />
+                </div>
+              </div>
+            </Card>
+
             {subtitleLevels.length > 0 && (
               <Card className="space-y-2">
                 <div className="flex flex-wrap items-center gap-2">
@@ -385,7 +406,7 @@ const PlaylistView = ({
               size="sm"
               variant="default"
               disabled={!canDownload}
-              onClick={onDownload}
+              onClick={() => onDownload(customFilename)}
               className="min-w-[132px]"
             >
               Start download
