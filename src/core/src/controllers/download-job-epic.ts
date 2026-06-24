@@ -1,6 +1,12 @@
 import { Epic } from "redux-observable";
-import { EMPTY, from, of } from "rxjs";
-import { catchError, filter, map, mergeMap, takeUntil } from "rxjs/operators";
+import { EMPTY, concat, from, of } from "rxjs";
+import {
+  catchError,
+  filter,
+  map,
+  mergeMap,
+  tap,
+} from "rxjs/operators";
 import { RootAction, RootState } from "../store/root-reducer";
 import { jobsSlice } from "../store/slices";
 import { Dependencies } from "../services";
@@ -32,19 +38,30 @@ export const downloadJobEpic: Epic<
           index: fragment.index + videoFragments.length,
         }))
       );
+      const container = job.filename?.endsWith(".mkv") ? "mkv" : "mp4";
       return from(
         createBucketFactory(fs)(
           jobId,
           videoFragments.length,
-          audioFragments.length
+          audioFragments.length,
+          container
         ).then(() => ({
           fragments,
           jobId,
         }))
       );
     }),
-    mergeMap(({ fragments, jobId }) =>
-      from(fragments).pipe(
+    mergeMap(({ fragments, jobId }) => {
+      let cancelled = false;
+      const cancel$ = action$.pipe(
+        filter(jobsSlice.actions.cancel.match),
+        filter((action) => action.payload.jobId === jobId),
+        tap(() => {
+          cancelled = true;
+        })
+      );
+
+      const download$ = from(fragments).pipe(
         mergeMap(
           (fragment) =>
             from(
@@ -57,7 +74,6 @@ export const downloadJobEpic: Epic<
                 jobId,
               }))
             ),
-
           store$.value.config.concurrency
         ),
         mergeMap(({ data, fragment, jobId }) =>
@@ -83,11 +99,6 @@ export const downloadJobEpic: Epic<
             })
           )
         ),
-        takeUntil(
-          action$
-            .pipe(filter(jobsSlice.actions.cancel.match))
-            .pipe(filter((action) => action.payload.jobId === jobId))
-        ),
         catchError((error: unknown) =>
           of(
             jobsSlice.actions.downloadFailed({
@@ -98,6 +109,26 @@ export const downloadJobEpic: Epic<
             })
           )
         )
-      )
-    )
+      );
+
+      // When cancel fires, cancel$ completes download$ via unsubscription.
+      // After download completes (normal or cancelled), dispatch
+      // downloadFailed if still in downloading state so the job doesn't
+      // stay stuck.
+      return concat(
+        download$,
+        of(null).pipe(
+          filter(() => {
+            const status = store$.value.jobs.jobsStatus[jobId];
+            return cancelled && status?.status === "downloading";
+          }),
+          map(() =>
+            jobsSlice.actions.downloadFailed({
+              jobId,
+              message: "Download cancelled",
+            })
+          )
+        )
+      );
+    })
   );

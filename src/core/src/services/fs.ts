@@ -4,7 +4,8 @@ export interface IFS {
   createBucket(
     id: string,
     videoLength: number,
-    audioLength: number
+    audioLength: number,
+    container?: string
   ): Promise<void>;
   deleteBucket(id: string): Promise<void>;
   setSubtitleText(

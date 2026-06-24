@@ -30,6 +30,7 @@ type BucketMeta = {
   bytesWritten?: number;
   storedChunks?: number;
   updatedAt?: number;
+  container?: string;
 };
 
 let bucketMetaCache: Record<string, BucketMeta> | null = null;
@@ -263,23 +264,33 @@ export class IndexedDBBucket implements Bucket {
   readonly objectStoreName = CHUNKS_STORE_NAME;
   private db?: IDBPDatabase<ChunksDB>;
   private isDeleted = false;
+  readonly container: string;
 
   constructor(
     readonly videoLength: number,
     readonly audioLength: number,
-    readonly id: string
+    readonly id: string,
+    container?: string
   ) {
     const base = id.endsWith(".mp4") ? id.slice(0, -4) : id;
     this.fileName = (filenamify(base) ?? "file").normalize("NFC");
+    this.container = container ?? "mp4";
   }
 
   async cleanup() {
     await this.deleteDB();
     try {
       const ffmpeg = await FFmpegSingleton.getInstance();
-      await ffmpeg.deleteFile(`${this.fileName}.mp4`);
-    } catch (error) {
-      // File may not exist, ignore error
+      // Clean up both possible output formats
+      for (const ext of ["mp4", "mkv"]) {
+        try {
+          await ffmpeg.deleteFile(`${this.fileName}.${ext}`);
+        } catch (_error) {
+          // File may not exist, ignore
+        }
+      }
+    } catch (_error) {
+      // FFmpeg not available, ignore
     }
     return;
   }
@@ -412,8 +423,9 @@ export class IndexedDBBucket implements Bucket {
 
     const subtitle = await getSubtitleText(this.id);
     const includeSubtitles = subtitle !== undefined;
+    const useMkv = includeSubtitles || this.container === "mkv";
     // write somewhere predictable (avoid path/punctuation issues)
-    const outputFileName = includeSubtitles ? "output.mkv" : "output.mp4";
+    const outputFileName = useMkv ? "output.mkv" : "output.mp4";
 
     const hasVideo = this.videoLength > 0;
     const hasAudio = this.audioLength > 0;
@@ -562,7 +574,8 @@ const cleanup: IFS["cleanup"] = async function () {
 const createBucket: IFS["createBucket"] = async function (
   id: string,
   videoLength: number,
-  audioLength: number
+  audioLength: number,
+  container?: string
 ) {
   await setBucketMeta(id, {
     videoLength,
@@ -570,8 +583,9 @@ const createBucket: IFS["createBucket"] = async function (
     bytesWritten: 0,
     storedChunks: 0,
     updatedAt: Date.now(),
+    container,
   });
-  buckets[id] = new IndexedDBBucket(videoLength, audioLength, id);
+  buckets[id] = new IndexedDBBucket(videoLength, audioLength, id, container);
   return Promise.resolve();
 };
 
@@ -613,7 +627,12 @@ const getBucket: IFS["getBucket"] = async function (id: string) {
     return;
   }
 
-  const bucket = new IndexedDBBucket(meta.videoLength, meta.audioLength, id);
+  const bucket = new IndexedDBBucket(
+    meta.videoLength,
+    meta.audioLength,
+    id,
+    meta.container
+  );
   buckets[id] = bucket;
   return bucket;
 };

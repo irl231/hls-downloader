@@ -48,7 +48,7 @@ describe("use-cases", () => {
   it("creates bucket", async () => {
     const { fs } = createFsMock();
     await createBucketFactory(fs)("id", 1, 2);
-    expect(fs.createBucket).toHaveBeenCalledWith("id", 1, 2);
+    expect(fs.createBucket).toHaveBeenCalledWith("id", 1, 2, undefined);
   });
 
   it("deletes bucket", async () => {

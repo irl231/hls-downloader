@@ -48,7 +48,7 @@ describe("downloadJobEpic", () => {
         } as any
       )
     );
-    expect(fs.createBucket).toHaveBeenCalledWith("1", 1, 0);
+    expect(fs.createBucket).toHaveBeenCalledWith("1", 1, 0, "mp4");
     expect(result).toEqual(jobsSlice.actions.incDownloadStatus({ jobId: "1" }));
   });
 });
