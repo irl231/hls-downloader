@@ -124,7 +124,7 @@ const SnifferView = ({
 
   return (
     <div className="flex flex-col px-4 pb-4 space-y-4">
-      <div ref={detailRef} className="space-y-3" aria-hidden={!visibleDetailId}>
+      <div ref={detailRef} className="space-y-3" {...(!visibleDetailId ? { inert: "" } : {})}>
         {visibleDetailId && (
           <PlaylistModule
             id={visibleDetailId}
@@ -133,7 +133,7 @@ const SnifferView = ({
         )}
       </div>
 
-      <div ref={listRef} className="space-y-4" aria-hidden={!!visibleDetailId}>
+      <div ref={listRef} className="space-y-4" {...(!!visibleDetailId ? { inert: "" } : {})}>
         <div className="flex flex-col space-y-3">
           <h3 className="text-base font-semibold">Sniffer</h3>
           <div className="flex flex-col gap-2">
