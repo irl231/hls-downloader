@@ -54,7 +54,10 @@ export const downloadJobEpic: Epic<
           index: fragment.index + videoFragments.length,
         }))
       );
-      const container = job.filename?.endsWith(".mkv") ? "mkv" : "mp4";
+      const preferMkv = store$.value.config.preferMkv ?? false;
+      const hasSubtitles =
+        job.subtitleText !== undefined && job.subtitleText !== null;
+      const container = hasSubtitles || preferMkv ? "mkv" : "mp4";
       return from(
         createBucketFactory(fs)(
           jobId,
