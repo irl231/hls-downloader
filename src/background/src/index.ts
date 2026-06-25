@@ -1,4 +1,5 @@
 import { createStore } from "@hls-downloader/core/lib/store/configure-store";
+import { createJobCanceller } from "@hls-downloader/core/lib/services";
 import { wrapStore } from "webext-redux";
 import { subscribeListeners } from "./listeners";
 import { getState, saveState } from "./persistState";
@@ -15,6 +16,7 @@ import { M3u8Parser } from "./services/m3u8-parser";
       fs: IndexedDBFS,
       loader: FetchLoader,
       parser: M3u8Parser,
+      canceller: createJobCanceller(),
     },
     state
   );

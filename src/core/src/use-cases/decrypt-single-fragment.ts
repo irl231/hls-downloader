@@ -9,16 +9,20 @@ export const decryptSingleFragmentFactory = (
   const run = async (
     key: Key,
     data: ArrayBuffer,
-    fetchAttempts: number
+    fetchAttempts: number,
+    signal?: AbortSignal
   ): Promise<ArrayBuffer> => {
     if (!key.uri || !key.iv) {
       return data;
     }
+    const fetcher = (uri: string, attempts: number, sig?: AbortSignal) =>
+      loader.fetchArrayBuffer(uri, attempts, undefined, { signal: sig });
     const { data: keyArrayBuffer } = await fetchWithFallback(
       key.uri,
       key.fallbackUri,
       fetchAttempts,
-      loader.fetchArrayBuffer
+      fetcher,
+      signal
     );
     const decryptedData = await decryptor.decrypt(data, keyArrayBuffer, key.iv);
     return decryptedData;

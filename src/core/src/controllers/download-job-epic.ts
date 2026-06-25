@@ -1,11 +1,11 @@
 import { Epic } from "redux-observable";
-import { EMPTY, concat, from, of } from "rxjs";
+import { EMPTY, from, of } from "rxjs";
 import {
   catchError,
   filter,
+  finalize,
   map,
   mergeMap,
-  tap,
 } from "rxjs/operators";
 import { RootAction, RootState } from "../store/root-reducer";
 import { jobsSlice } from "../store/slices";
@@ -22,7 +22,7 @@ export const downloadJobEpic: Epic<
   RootAction,
   RootState,
   Dependencies
-> = (action$, store$, { fs, loader, decryptor }) =>
+> = (action$, store$, { fs, loader, decryptor, canceller }) =>
   action$.pipe(
     filter(jobsSlice.actions.download.match),
     map((action) => action.payload.jobId),
@@ -31,6 +31,22 @@ export const downloadJobEpic: Epic<
       if (!job) {
         return EMPTY;
       }
+      let controller = new AbortController();
+      const existingSignal = canceller.signal(jobId);
+      if (existingSignal?.aborted) {
+        return of(
+          jobsSlice.actions.downloadFailed({
+            jobId,
+            message: "Download cancelled",
+          })
+        );
+      }
+      if (existingSignal) {
+        const onAbort = () => controller.abort();
+        existingSignal.addEventListener("abort", onAbort, { once: true });
+      }
+      const signal = controller.signal;
+
       const { videoFragments, audioFragments } = job;
       const fragments = videoFragments.concat(
         audioFragments.map((fragment) => ({
@@ -49,86 +65,92 @@ export const downloadJobEpic: Epic<
           fragments,
           jobId,
         }))
-      );
-    }),
-    mergeMap(({ fragments, jobId }) => {
-      let cancelled = false;
-      const cancel$ = action$.pipe(
-        filter(jobsSlice.actions.cancel.match),
-        filter((action) => action.payload.jobId === jobId),
-        tap(() => {
-          cancelled = true;
-        })
-      );
+      ).pipe(
+        mergeMap(({ fragments, jobId }) => {
+          if (signal.aborted) {
+            return of(
+              jobsSlice.actions.downloadFailed({
+                jobId,
+                message: "Download cancelled",
+              })
+            );
+          }
 
-      const download$ = from(fragments).pipe(
-        mergeMap(
-          (fragment) =>
-            from(
-              downloadSingleFactory(loader)(
-                fragment,
-                store$.value.config.fetchAttempts
+          const download$ = from(fragments).pipe(
+            mergeMap(
+              (fragment) =>
+                from(
+                  downloadSingleFactory(loader)(
+                    fragment,
+                    store$.value.config.fetchAttempts,
+                    signal
+                  ).then((data) => ({
+                    fragment,
+                    data,
+                    jobId,
+                  }))
+                ),
+              store$.value.config.concurrency
+            ),
+            mergeMap(({ data, fragment, jobId }) =>
+              decryptSingleFragmentFactory(loader, decryptor)(
+                fragment.key,
+                data,
+                store$.value.config.fetchAttempts,
+                signal
               ).then((data) => ({
                 fragment,
                 data,
                 jobId,
               }))
             ),
-          store$.value.config.concurrency
-        ),
-        mergeMap(({ data, fragment, jobId }) =>
-          decryptSingleFragmentFactory(loader, decryptor)(
-            fragment.key,
-            data,
-            store$.value.config.fetchAttempts
-          ).then((data) => ({
-            fragment,
-            data,
-            jobId,
-          }))
-        ),
-        mergeMap(({ data, jobId, fragment }) =>
-          writeToBucketFactory(fs)(jobId, fragment.index, data).then(() => ({
-            jobId,
-          }))
-        ),
-        mergeMap(({ jobId }) =>
-          of(
-            jobsSlice.actions.incDownloadStatus({
-              jobId,
+            mergeMap(({ data, jobId, fragment }) =>
+              writeToBucketFactory(fs)(jobId, fragment.index, data).then(() => ({
+                jobId,
+              }))
+            ),
+            mergeMap(({ jobId }) =>
+              of(
+                jobsSlice.actions.incDownloadStatus({
+                  jobId,
+                })
+              )
+            ),
+            catchError((error: unknown) => {
+              const isCancelled =
+                signal.aborted ||
+                (error instanceof DOMException &&
+                  error.name === "AbortError");
+              return of(
+                jobsSlice.actions.downloadFailed({
+                  jobId,
+                  message: isCancelled
+                    ? "Download cancelled"
+                    : (error as Error)?.message ||
+                      "Download failed during fragment processing",
+                })
+              );
             })
-          )
-        ),
-        catchError((error: unknown) =>
-          of(
-            jobsSlice.actions.downloadFailed({
-              jobId,
-              message:
-                (error as Error)?.message ||
-                "Download failed during fragment processing",
-            })
-          )
-        )
-      );
+          );
 
-      // When cancel fires, cancel$ completes download$ via unsubscription.
-      // After download completes (normal or cancelled), dispatch
-      // downloadFailed if still in downloading state so the job doesn't
-      // stay stuck.
-      return concat(
-        download$,
-        of(null).pipe(
-          filter(() => {
-            const status = store$.value.jobs.jobsStatus[jobId];
-            return cancelled && status?.status === "downloading";
-          }),
-          map(() =>
+          return download$;
+        }),
+        catchError((error: unknown) => {
+          const isCancelled =
+            signal.aborted ||
+            (error instanceof DOMException && error.name === "AbortError");
+          return of(
             jobsSlice.actions.downloadFailed({
               jobId,
-              message: "Download cancelled",
+              message: isCancelled
+                ? "Download cancelled"
+                : (error as Error)?.message || "Failed to prepare download",
             })
-          )
-        )
+          );
+        }),
+        finalize(() => {
+          canceller.cleanup(jobId);
+        })
       );
     })
   );

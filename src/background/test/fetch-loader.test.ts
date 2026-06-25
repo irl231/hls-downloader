@@ -24,7 +24,10 @@ describe("FetchLoader", () => {
 
       expect(result).toBe("success");
       expect(fetchMock).toHaveBeenCalledTimes(1);
-      expect(fetchMock).toHaveBeenCalledWith("https://example.com");
+      expect(fetchMock).toHaveBeenCalledWith(
+        "https://example.com",
+        expect.objectContaining({ signal: expect.any(AbortSignal) })
+      );
     });
 
     it("retries failed fetches with exponential backoff", async () => {
@@ -48,10 +51,13 @@ describe("FetchLoader", () => {
       expect(result).toBe("success");
       expect(fetchMock).toHaveBeenCalledTimes(3);
 
-      const delays = setTimeoutSpy.mock.calls.map((call) => call[1]);
-      expect(delays).toHaveLength(2);
-      expect(delays[0]).toBe(100);
-      expect(delays[1]).toBeCloseTo(115, 1);
+      // Filter out AbortController timeout timers (60_000ms)
+      const retryDelays = setTimeoutSpy.mock.calls
+        .map((call) => call[1])
+        .filter((delay) => delay < 1000);
+      expect(retryDelays).toHaveLength(2);
+      expect(retryDelays[0]).toBe(100);
+      expect(retryDelays[1]).toBeCloseTo(115, 1);
     });
 
     it("throws error when all retry attempts are exhausted", async () => {
@@ -142,7 +148,10 @@ describe("FetchLoader", () => {
 
       expect(result).toBe(mockBuffer);
       expect(fetchMock).toHaveBeenCalledTimes(1);
-      expect(fetchMock).toHaveBeenCalledWith("https://example.com/data.bin");
+      expect(fetchMock).toHaveBeenCalledWith(
+        "https://example.com/data.bin",
+        expect.objectContaining({ signal: expect.any(AbortSignal) })
+      );
     });
 
     it("retries failed array buffer fetches", async () => {
@@ -213,9 +222,13 @@ describe("FetchLoader", () => {
       });
 
       expect(result).toBe(mockBuffer);
-      expect(fetchMock).toHaveBeenCalledWith("https://example.com/data.mp4", {
-        headers: { Range: "bytes=833-50832" },
-      });
+      expect(fetchMock).toHaveBeenCalledWith(
+        "https://example.com/data.mp4",
+        expect.objectContaining({
+          headers: { Range: "bytes=833-50832" },
+          signal: expect.any(AbortSignal),
+        })
+      );
     });
 
     it("slices the response when a byteRange request returns the full file", async () => {
@@ -234,9 +247,13 @@ describe("FetchLoader", () => {
       });
 
       expect(new Uint8Array(result)).toEqual(new Uint8Array([3, 4, 5, 6]));
-      expect(fetchMock).toHaveBeenCalledWith("https://example.com/data.mp4", {
-        headers: { Range: "bytes=3-6" },
-      });
+      expect(fetchMock).toHaveBeenCalledWith(
+        "https://example.com/data.mp4",
+        expect.objectContaining({
+          headers: { Range: "bytes=3-6" },
+          signal: expect.any(AbortSignal),
+        })
+      );
     });
 
     it("does not send Range header without byteRange", async () => {
@@ -251,7 +268,10 @@ describe("FetchLoader", () => {
 
       await fetchArrayBuffer("https://example.com/data.bin");
 
-      expect(fetchMock).toHaveBeenCalledWith("https://example.com/data.bin");
+      expect(fetchMock).toHaveBeenCalledWith(
+        "https://example.com/data.bin",
+        expect.objectContaining({ signal: expect.any(AbortSignal) })
+      );
     });
 
     it("does not retry HTTP errors for array buffers", async () => {

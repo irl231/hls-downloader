@@ -154,7 +154,7 @@ describe("use-cases", () => {
     const key = new Key("https://key", new Uint8Array([1]));
     const data = new ArrayBuffer(2);
     const result = await run(key, data, 2);
-    expect(loader.fetchArrayBuffer).toHaveBeenCalledWith("https://key", 2);
+    expect(loader.fetchArrayBuffer).toHaveBeenCalledWith("https://key", 2, undefined, { signal: undefined });
     expect(decryptor.decrypt).toHaveBeenCalled();
     expect(result.byteLength).toBe(4);
   });
@@ -184,7 +184,7 @@ describe("use-cases", () => {
     const run = downloadSingleFactory(loader);
     const fragment = new Fragment(new Key(null, null), "https://frag", 1, null);
     const data = await run(fragment, 5);
-    expect(loader.fetchArrayBuffer).toHaveBeenCalledWith("https://frag", 5);
+    expect(loader.fetchArrayBuffer).toHaveBeenCalledWith("https://frag", 5, undefined, { signal: undefined });
     expect(data.byteLength).toBe(3);
   });
 
@@ -205,7 +205,8 @@ describe("use-cases", () => {
     expect(loader.fetchArrayBuffer).toHaveBeenCalledWith(
       "https://example.com/CMAF_720.mp4",
       3,
-      { offset: 833, length: 50000 }
+      { offset: 833, length: 50000 },
+      { signal: undefined }
     );
     expect(data.byteLength).toBe(100);
   });
@@ -230,12 +231,16 @@ describe("use-cases", () => {
     expect(loader.fetchArrayBuffer).toHaveBeenNthCalledWith(
       1,
       "https://example.com/frag.ts?token=abc",
-      2
+      2,
+      undefined,
+      { signal: undefined }
     );
     expect(loader.fetchArrayBuffer).toHaveBeenNthCalledWith(
       2,
       "https://example.com/frag.ts",
-      2
+      2,
+      undefined,
+      { signal: undefined }
     );
     expect(data.byteLength).toBe(1);
   });

@@ -3,8 +3,8 @@
 exports[`Mux Pipeline E2E (host ffmpeg) > audio-only → AAC MP4 1`] = `
 {
   "duration": "4.010000",
-  "sha256": "4ea88c669b04beef17d5c45ddf39e1b1fa19e177f82488b684188cd9173bc73d",
-  "sizeBytes": 100019,
+  "sha256": "b0d01224d6d2badd0d60ebf6e09bba4047e4632f8ef165f8fdd98c397a83cd3c",
+  "sizeBytes": 100152,
   "streams": [
     {
       "channels": 2,
@@ -20,8 +20,8 @@ exports[`Mux Pipeline E2E (host ffmpeg) > audio-only → AAC MP4 1`] = `
 exports[`Mux Pipeline E2E (host ffmpeg) > concat 2 muxed v+a segments → MP4 1`] = `
 {
   "duration": "6.073000",
-  "sha256": "a3d8cea48e0f77ac4143b5298ea4f199b1a8c8a49049ad265f876d1865b520e8",
-  "sizeBytes": 461794,
+  "sha256": "8ba9b7c119e9b1951d22f299f0a961e4d3e0690e40672ade079b0dc52c612c30",
+  "sizeBytes": 461795,
   "streams": [
     {
       "codec_name": "h264",
@@ -44,8 +44,8 @@ exports[`Mux Pipeline E2E (host ffmpeg) > concat 2 muxed v+a segments → MP4 1`
 exports[`Mux Pipeline E2E (host ffmpeg) > muxed-with-data-stream → MP4, no data streams (#509) 1`] = `
 {
   "duration": "4.224000",
-  "sha256": "2b0c00e05930a0c975e1aa2eb47d0924428c5407d4d4897023c4c77f3c4c6360",
-  "sizeBytes": 55577,
+  "sha256": "f809c45e917cecb25ae0e80fabde8b9700d76a076e469f71bc97ee3f93fac13f",
+  "sizeBytes": 55578,
   "streams": [
     {
       "codec_name": "h264",
@@ -75,8 +75,8 @@ exports[`Mux Pipeline E2E (host ffmpeg) > muxed-with-data-stream → MP4, no dat
 exports[`Mux Pipeline E2E (host ffmpeg) > separate video + audio → MP4 1`] = `
 {
   "duration": "3.000000",
-  "sha256": "12032a2dc38e4df2e65a0e611add8f7e9981488f38754efdd339c0e59869a85a",
-  "sizeBytes": 84240,
+  "sha256": "43908043998c630c193baf401cc49c59813a017d9d275ca3498215847e8951c6",
+  "sizeBytes": 84241,
   "streams": [
     {
       "codec_name": "h264",
@@ -99,7 +99,7 @@ exports[`Mux Pipeline E2E (host ffmpeg) > separate video + audio → MP4 1`] = `
 exports[`Mux Pipeline E2E (host ffmpeg) > video + subtitles → MKV 1`] = `
 {
   "duration": "3.000000",
-  "sizeBytes": 56239,
+  "sizeBytes": 56242,
   "streams": [
     {
       "codec_name": "h264",

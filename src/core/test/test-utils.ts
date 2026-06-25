@@ -37,20 +37,31 @@ export function createMockLoader(
   } = options;
 
   return {
-    fetchText: vi.fn().mockImplementation((url: string, attempts?: number) => {
-      if (shouldFail) {
-        return Promise.reject(new Error("Fetch text failed"));
-      }
-      return Promise.resolve(textResponse);
-    }),
+    fetchText: vi
+      .fn()
+      .mockImplementation(
+        (url: string, _attempts?: number, _options?: unknown) => {
+          if (shouldFail) {
+            return Promise.reject(new Error("Fetch text failed"));
+          }
+          return Promise.resolve(textResponse);
+        }
+      ),
     fetchArrayBuffer: vi
       .fn()
-      .mockImplementation((url: string, attempts?: number) => {
-        if (shouldFail) {
-          return Promise.reject(new Error("Fetch buffer failed"));
+      .mockImplementation(
+        (
+          url: string,
+          _attempts?: number,
+          _byteRange?: unknown,
+          _options?: unknown
+        ) => {
+          if (shouldFail) {
+            return Promise.reject(new Error("Fetch buffer failed"));
+          }
+          return Promise.resolve(bufferResponse);
         }
-        return Promise.resolve(bufferResponse);
-      }),
+      ),
   };
 }
 
@@ -147,6 +158,32 @@ export function createMockFS(
 }
 
 /**
+ * Create mock canceller
+ */
+export function createMockCanceller() {
+  const signals = new Map<string, AbortController>();
+  return {
+    signal: vi.fn().mockImplementation((jobId: string) => {
+      return signals.get(jobId)?.signal;
+    }),
+    cancel: vi.fn().mockImplementation((jobId: string) => {
+      let controller = signals.get(jobId);
+      if (!controller) {
+        controller = new AbortController();
+        signals.set(jobId, controller);
+      }
+      controller.abort();
+    }),
+    cleanup: vi.fn().mockImplementation((jobId: string) => {
+      const controller = signals.get(jobId);
+      if (controller?.signal.aborted) {
+        signals.delete(jobId);
+      }
+    }),
+  };
+}
+
+/**
  * Create all dependencies with mocks
  */
 export function createMockDependencies(
@@ -169,6 +206,7 @@ export function createMockDependencies(
     decryptor,
     parser,
     fs,
+    canceller: createMockCanceller(),
   };
 }
 

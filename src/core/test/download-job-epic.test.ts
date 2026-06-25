@@ -3,6 +3,7 @@ import { of, firstValueFrom } from "rxjs";
 import { downloadJobEpic } from "../src/controllers/download-job-epic.ts";
 import { jobsSlice } from "../src/store/slices/index.ts";
 import { Fragment, Key } from "../src/entities/index.ts";
+import { createMockCanceller } from "./test-utils.ts";
 
 describe("downloadJobEpic", () => {
   it("downloads fragments and reports progress", async () => {
@@ -27,6 +28,7 @@ describe("downloadJobEpic", () => {
       fetchArrayBuffer: vi.fn().mockResolvedValue(new ArrayBuffer(0)),
     };
     const decryptor = { decrypt: vi.fn() };
+    const canceller = createMockCanceller();
     const action$ = of(jobsSlice.actions.download({ jobId: "1" }));
     const state = {
       config: { concurrency: 1, fetchAttempts: 1 },
@@ -45,6 +47,7 @@ describe("downloadJobEpic", () => {
           fs,
           loader,
           decryptor,
+          canceller,
         } as any
       )
     );

@@ -1,5 +1,5 @@
 import { Epic } from "redux-observable";
-import { of } from "rxjs";
+import { of, EMPTY } from "rxjs";
 import { filter, mergeMap } from "rxjs/operators";
 import { RootAction, RootState } from "../store/root-reducer";
 import { jobsSlice } from "../store/slices";
@@ -10,10 +10,20 @@ export const cancelJobdeleteJobEpic: Epic<
   RootAction,
   RootState,
   Dependencies
-> = (action$, _store$, { fs }) =>
+> = (action$, store$, { canceller }) =>
   action$.pipe(
     filter(jobsSlice.actions.cancel.match),
-    mergeMap(({ payload: { jobId } }) =>
-      of(jobsSlice.actions.delete({ jobId }))
-    )
+    mergeMap(({ payload: { jobId } }) => {
+      const status = store$.value.jobs.jobsStatus[jobId]?.status;
+      if (status === "downloading" || status === "queued") {
+        canceller.cancel(jobId);
+        return of(
+          jobsSlice.actions.downloadFailed({
+            jobId,
+            message: "Download cancelled",
+          })
+        );
+      }
+      return of(jobsSlice.actions.delete({ jobId }));
+    })
   );
