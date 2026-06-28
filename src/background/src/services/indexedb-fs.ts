@@ -264,7 +264,7 @@ export class IndexedDBBucket implements Bucket {
   readonly objectStoreName = CHUNKS_STORE_NAME;
   private db?: IDBPDatabase<ChunksDB>;
   private isDeleted = false;
-  container: string;
+  readonly container: string;
 
   constructor(
     readonly videoLength: number,

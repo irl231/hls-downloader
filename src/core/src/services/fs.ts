@@ -26,7 +26,6 @@ export interface IFS {
 }
 
 export interface Bucket {
-  container: string;
   write(index: number, data: ArrayBuffer): Promise<void>;
   getLink(
     onProgress?: (progress: number, message: string) => void
