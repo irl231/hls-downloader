@@ -19,6 +19,7 @@ import {
   Job,
   JobStatus,
 } from "../src/entities";
+import type { LevelType, OutputContainer } from "../src/entities";
 
 /**
  * Create mock loader with configurable responses
@@ -117,7 +118,10 @@ export function createMockBucket(
     getLink: vi
       .fn()
       .mockImplementation(
-        (onProgress?: (progress: number, message: string) => void) => {
+        (
+          onProgress?: (progress: number, message: string) => void,
+          _options?: { container?: OutputContainer }
+        ) => {
           if (onProgress) {
             onProgress(0, "Starting");
             onProgress(50, "Halfway");
@@ -152,6 +156,8 @@ export function createMockFS(
     getBucket: vi.fn().mockResolvedValue(bucket),
     createBucket: vi.fn().mockResolvedValue(undefined),
     deleteBucket: vi.fn().mockResolvedValue(undefined),
+    setSubtitleText: vi.fn().mockResolvedValue(undefined),
+    getSubtitleText: vi.fn().mockResolvedValue(undefined),
     saveAs: vi.fn().mockResolvedValue(undefined),
     getStorageStats: vi.fn().mockResolvedValue(storageSnapshot),
   };
@@ -244,7 +250,7 @@ export function createTestLevel(
     id?: string;
     playlistID?: string;
     uri?: string;
-    type?: "stream" | "audio";
+    type?: LevelType;
     width?: number;
     height?: number;
     bitrate?: number;
@@ -379,6 +385,7 @@ export function createMockState(
     tabId?: number;
     maxActiveDownloads?: number;
     preferredAudioLanguage?: string | null;
+    outputContainer?: OutputContainer;
   } = {}
 ): any {
   const {
@@ -394,6 +401,7 @@ export function createMockState(
     tabId = 1,
     maxActiveDownloads = 0,
     preferredAudioLanguage = null,
+    outputContainer = "mp4",
   } = options;
 
   return {
@@ -415,6 +423,7 @@ export function createMockState(
       saveDialog,
       maxActiveDownloads,
       preferredAudioLanguage,
+      outputContainer,
     },
     tabs: {
       current: {

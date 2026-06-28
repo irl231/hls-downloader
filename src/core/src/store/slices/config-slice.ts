@@ -4,6 +4,7 @@ import {
   Slice,
   CaseReducer,
 } from "@reduxjs/toolkit";
+import type { OutputContainer } from "../../entities";
 
 export interface ISetConcurrencyPayload {
   concurrency: number;
@@ -28,8 +29,8 @@ export interface ISetAutoDeleteAfterSavePayload {
   autoDeleteAfterSave: boolean;
 }
 
-export interface ISetPreferMkvPayload {
-  preferMkv: boolean;
+export interface ISetOutputContainerPayload {
+  outputContainer: OutputContainer;
 }
 
 export interface IConfigState {
@@ -39,7 +40,7 @@ export interface IConfigState {
   preferredAudioLanguage: string | null;
   maxActiveDownloads: number;
   autoDeleteAfterSave: boolean;
-  preferMkv: boolean;
+  outputContainer: OutputContainer;
 }
 
 interface IConfigReducers {
@@ -67,9 +68,9 @@ interface IConfigReducers {
     IConfigState,
     PayloadAction<ISetAutoDeleteAfterSavePayload>
   >;
-  setPreferMkv: CaseReducer<
+  setOutputContainer: CaseReducer<
     IConfigState,
-    PayloadAction<ISetPreferMkvPayload>
+    PayloadAction<ISetOutputContainerPayload>
   >;
   [key: string]: CaseReducer<IConfigState, PayloadAction<any>>;
 }
@@ -81,7 +82,7 @@ export const initialConfigState: IConfigState = {
   preferredAudioLanguage: null,
   maxActiveDownloads: 0,
   autoDeleteAfterSave: false,
-  preferMkv: false,
+  outputContainer: "mp4",
 };
 
 export const configSlice: Slice<IConfigState, IConfigReducers, "config"> =
@@ -116,11 +117,11 @@ export const configSlice: Slice<IConfigState, IConfigReducers, "config"> =
       ) {
         state.autoDeleteAfterSave = action.payload.autoDeleteAfterSave;
       },
-      setPreferMkv(
+      setOutputContainer(
         state,
-        action: PayloadAction<ISetPreferMkvPayload>
+        action: PayloadAction<ISetOutputContainerPayload>
       ) {
-        state.preferMkv = action.payload.preferMkv;
+        state.outputContainer = action.payload.outputContainer;
       },
     },
   });

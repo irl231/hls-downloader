@@ -1,5 +1,6 @@
-import { RootState } from "@hls-downloader/core/lib/store/root-reducer";
+import type { RootState } from "@hls-downloader/core/lib/store/root-reducer";
 import { configSlice } from "@hls-downloader/core/lib/store/slices";
+import type { OutputContainer } from "@hls-downloader/core/lib/entities";
 import { useDispatch, useSelector } from "react-redux";
 
 interface ReturnType {
@@ -8,7 +9,7 @@ interface ReturnType {
   fetchAttempts: number;
   saveDialog: boolean;
   autoDeleteAfterSave: boolean;
-  preferMkv: boolean;
+  outputContainer: OutputContainer;
   onFetchAttemptsIncrease: () => void;
   onFetchAttemptsDecrease: () => void;
   onSaveDialogToggle: () => void;
@@ -21,6 +22,7 @@ interface ReturnType {
   onActiveDownloadsUnlimited: () => void;
   preferredAudioLanguage: string | null;
   onSetPreferredAudioLanguage: (lang: string | null) => void;
+  onSetOutputContainer: (outputContainer: OutputContainer) => void;
   activeDownloadsUnlimited: boolean;
 }
 
@@ -44,8 +46,8 @@ const useSettingsController = (): ReturnType => {
   const autoDeleteAfterSave = useSelector<RootState, boolean>(
     (state) => state.config.autoDeleteAfterSave
   );
-  const preferMkv = useSelector<RootState, boolean>(
-    (state) => state.config.preferMkv ?? false
+  const outputContainer = useSelector<RootState, OutputContainer>(
+    (state) => state.config.outputContainer ?? "mp4"
   );
   const activeDownloadsUnlimited = maxActiveDownloads === 0;
 
@@ -129,6 +131,13 @@ const useSettingsController = (): ReturnType => {
       })
     );
   }
+  function onSetOutputContainer(outputContainer: OutputContainer) {
+    dispatch(
+      configSlice.actions.setOutputContainer({
+        outputContainer,
+      })
+    );
+  }
   return {
     concurrency,
     maxActiveDownloads,
@@ -141,7 +150,7 @@ const useSettingsController = (): ReturnType => {
     fetchAttempts,
     saveDialog,
     autoDeleteAfterSave,
-    preferMkv,
+    outputContainer,
     onFetchAttemptsIncrease,
     onFetchAttemptsDecrease,
     onSaveDialogToggle,
@@ -149,6 +158,7 @@ const useSettingsController = (): ReturnType => {
     onPreferMkvToggle,
     preferredAudioLanguage,
     onSetPreferredAudioLanguage,
+    onSetOutputContainer,
   };
 };
 
