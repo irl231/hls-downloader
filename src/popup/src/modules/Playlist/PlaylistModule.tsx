@@ -189,7 +189,7 @@ const PlaylistModule = ({
 
   const requiresVideo = videoLevels.length > 0;
   const requiresAudio =
-    selectedVideo?.audioGroupId && filteredAudioLevels.length > 0;
+    Boolean(selectedVideo?.audioGroupId) && filteredAudioLevels.length > 0;
   const hasMedia = requiresVideo || requiresAudio;
 
   const estimate = useMemo(() => {
@@ -230,8 +230,8 @@ const PlaylistModule = ({
   };
 
   const inspectionPending =
-    (videoId && inspections.status[videoId] === "pending") ||
-    (audioId && inspections.status[audioId] === "pending");
+    (!!videoId && inspections.status[videoId] === "pending") ||
+    (!!audioId && inspections.status[audioId] === "pending");
 
   const encryptionSummaries = [
     selectedVideo

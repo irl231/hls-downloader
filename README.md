@@ -37,8 +37,8 @@
   Detects HLS playlists on the page the moment you open it. No DevTools sniffing required.
 - **Fine-grained quality control**
   Pick any combination of video resolution (240p → 4K) and audio language/bit-rate _before_ you download, so you never waste bandwidth on the wrong track.
-- **100% local merge with `ffmpeg.wasm`**
-  A WebAssembly build of FFmpeg runs right inside your tab, muxing the chosen audio + video into a single MP4.
+- **100% local, disk-backed merge with `ffmpeg.wasm`**
+  A WebAssembly build of FFmpeg muxes the chosen audio + video into a standard MP4 or MKV while keeping media fragments and final output in browser-managed storage.
   * Nothing is uploaded, keeping your files private.
 - **Works everywhere you browse**
   Verified on Firefox, Edge, Chrome, Brave, Arc, and other Chromium-based browsers, on Windows, macOS, and Linux.
@@ -57,6 +57,8 @@
 | <img src="https://upload.wikimedia.org/wikipedia/commons/4/49/Opera_2015_icon.svg" height="14" alt="Opera logo" />&nbsp;&nbsp;Opera                                        | [Use manual installation](#-opera)                                                                                                  |
 
 <sup>*For Brave/Arc/etc. download the ZIP from the [latest release](https://github.com/puemos/hls-downloader/releases) and follow the manual-install steps below.</sup>
+
+Current releases require Firefox 128 or newer, or Chromium 111 or newer.
 
 ---
 
@@ -124,21 +126,28 @@
 4. Pick your video & audio streams, then press **Download**.
 5. Grab a coffee ☕ – `ffmpeg.wasm` merges everything and your browser prompts you to save the MP4 when done.
 
+The extension needs enough free disk space for both the downloaded fragments
+and the finalized media file. Browser storage estimates can be conservative and
+are treated as informational when unlimited storage permission is active.
+Downloads started by an older extension version remain readable through the
+legacy IndexedDB path, but are not migrated; if a legacy finalization runs out
+of memory, delete it and download it again.
+
 ---
 
 ## 🧑‍💻 Development
 
 ### Clone & Build
 
-Requires Node.js 20+ (includes [Corepack](https://nodejs.org/api/corepack.html)) and the `zip` command.
+Requires Node.js 22.12+ and the `zip` command. Firefox release builds use
+Node.js 22.12.0, npm 10.9.0, and pnpm 10.34.4 exactly.
 
 ```bash
 git clone https://github.com/puemos/hls-downloader.git
 cd hls-downloader
 
-# install the pinned pnpm version
-corepack enable
-corepack prepare pnpm@10.11.0 --activate
+# install the pinned pnpm version through npm
+npm install --global pnpm@10.34.4
 
 pnpm install --frozen-lockfile
 pnpm run build    # outputs → ./dist/, extension-chrome.zip, extension-firefox.xpi
@@ -169,7 +178,7 @@ For Firefox Add-ons source review, use the exact reproduction steps in
 `source-code.zip`; `pnpm run publish:firefox` creates a fresh source archive from
 the committed release revision.
 
-> Tip: If pnpm is missing, run `corepack enable && corepack prepare pnpm@10.11.0 --activate` to match the locked toolchain.
+> Tip: If pnpm is missing, run `npm install --global pnpm@10.34.4` to match the locked toolchain. Do not use the Corepack bundled with Node.js 22.12.0; its pnpm signing keys are obsolete.
 
 Run tests & generate coverage badge:
 
@@ -259,7 +268,7 @@ pnpm run build:mv3:no-blocklist
 pnpm run build:all-variants
 ```
 
-Non-blocklist builds are named "experimental unstable nightly beta alpha hls-downloader" and are intended for personal use only—not for redistribution on official stores.
+Non-blocklist builds are named "HLS Downloader (Experimental No Blocklist)" and are intended for personal use only—not for redistribution on official stores.
 
 ---
 

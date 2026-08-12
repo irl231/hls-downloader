@@ -30,7 +30,7 @@ export interface IDownloadLevelPayload {
 interface ILevelsReducers {
   download: CaseReducer<ILevelsState, PayloadAction<IDownloadLevelPayload>>;
   add: CaseReducer<ILevelsState, PayloadAction<IAddLevelsPayload>>;
-  clear: CaseReducer<ILevelsState, PayloadAction<any>>;
+  clear: CaseReducer<ILevelsState>;
   removePlaylistLevels: CaseReducer<
     ILevelsState,
     PayloadAction<IRemovePlaylistLevelsPayload>
